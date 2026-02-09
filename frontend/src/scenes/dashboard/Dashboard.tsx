@@ -13,6 +13,13 @@ import { useOnMountEffect } from 'lib/hooks/useOnMountEffect'
 import { cn } from 'lib/utils/css-classes'
 import { DashboardEventSource } from 'lib/utils/eventUsageLogic'
 import { DashboardEditBar } from 'scenes/dashboard/DashboardEditBar'
+import {
+    DashboardAdvancedOptions,
+    DashboardAdvancedOptionsToggle,
+    DashboardPrimaryFilters,
+    DashboardQuickFiltersRow,
+} from 'scenes/dashboard/DashboardFilters'
+import { useDashboardFiltersEnabled } from 'scenes/dashboard/dashboardFiltersEnabled'
 import { DashboardItems } from 'scenes/dashboard/DashboardItems'
 import { DashboardLogicProps, dashboardLogic } from 'scenes/dashboard/dashboardLogic'
 import { DashboardReloadAction, LastRefreshText } from 'scenes/dashboard/DashboardReloadAction'
@@ -88,6 +95,7 @@ function DashboardScene(): JSX.Element {
         setDashboardMode,
     } = useActions(dashboardLogic)
     const { addInsightToDashboardModalVisible } = useValues(addInsightToDashboardLogic)
+    const dashboardFiltersEnabled = useDashboardFiltersEnabled()
 
     useFileSystemLogView({
         type: 'dashboard',
@@ -190,42 +198,59 @@ function DashboardScene(): JSX.Element {
                     )}
 
                     <SceneStickyBar showBorderBottom={false}>
-                        <div className="flex flex-col md:flex-row gap-2 justify-between">
-                            {![
-                                DashboardPlacement.Public,
-                                DashboardPlacement.Export,
-                                DashboardPlacement.FeatureFlag,
-                                DashboardPlacement.Group,
-                                DashboardPlacement.Builtin,
-                            ].includes(placement) &&
-                                dashboard && <DashboardEditBar />}
-                            {[DashboardPlacement.FeatureFlag, DashboardPlacement.Group].includes(placement) &&
-                                dashboard?.id && (
-                                    <LemonButton type="secondary" size="small" to={urls.dashboard(dashboard.id)}>
-                                        {placement === DashboardPlacement.Group
-                                            ? 'Edit dashboard template'
-                                            : 'Edit dashboard'}
-                                    </LemonButton>
-                                )}
-                            {![DashboardPlacement.Export, DashboardPlacement.Builtin].includes(placement) && (
-                                <div
-                                    className={clsx('flex shrink-0 deprecated-space-x-4 dashoard-items-actions', {
-                                        'mt-7': hasVariables,
-                                    })}
-                                >
+                        <div className="flex flex-col gap-2 w-full">
+                            {/* Primary row: Date + QF Icon (left) + Advanced toggle + Refresh (right) */}
+                            <div className="flex gap-2 justify-between">
+                                <div className="flex flex-col md:flex-row gap-2 justify-between">
+                                    {![
+                                        DashboardPlacement.Public,
+                                        DashboardPlacement.Export,
+                                        DashboardPlacement.FeatureFlag,
+                                        DashboardPlacement.Group,
+                                        DashboardPlacement.Builtin,
+                                    ].includes(placement) &&
+                                        dashboard &&
+                                        (dashboardFiltersEnabled ? <DashboardPrimaryFilters /> : <DashboardEditBar />)}
+                                </div>
+                                {[DashboardPlacement.FeatureFlag, DashboardPlacement.Group].includes(placement) &&
+                                    dashboard?.id && (
+                                        <LemonButton type="secondary" size="small" to={urls.dashboard(dashboard.id)}>
+                                            {placement === DashboardPlacement.Group
+                                                ? 'Edit dashboard template'
+                                                : 'Edit dashboard'}
+                                        </LemonButton>
+                                    )}
+                                {![DashboardPlacement.Export, DashboardPlacement.Builtin].includes(placement) && (
                                     <div
-                                        className={`left-item ${
-                                            placement === DashboardPlacement.Public ? 'text-right' : ''
-                                        }`}
+                                        className={clsx('flex shrink-0 gap-4 items-center dashoard-items-actions', {
+                                            'mt-7': hasVariables,
+                                        })}
                                     >
-                                        {[DashboardPlacement.Public].includes(placement) ? (
-                                            <LastRefreshText />
-                                        ) : !(dashboardMode === DashboardMode.Edit) ? (
-                                            <DashboardReloadAction />
-                                        ) : null}
+                                        {dashboardFiltersEnabled && <DashboardAdvancedOptionsToggle />}
+                                        <div
+                                            className={`left-item ${
+                                                placement === DashboardPlacement.Public ? 'text-right' : ''
+                                            }`}
+                                        >
+                                            {[DashboardPlacement.Public].includes(placement) ? (
+                                                <LastRefreshText />
+                                            ) : !(dashboardMode === DashboardMode.Edit) ? (
+                                                <DashboardReloadAction />
+                                            ) : null}
+                                        </div>
                                     </div>
+                                )}
+                            </div>
+
+                            {/* Quick filters row - full width */}
+                            {dashboardFiltersEnabled && (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <DashboardQuickFiltersRow />
                                 </div>
                             )}
+
+                            {/* Advanced options row - full width */}
+                            {dashboardFiltersEnabled && <DashboardAdvancedOptions />}
                         </div>
                     </SceneStickyBar>
 

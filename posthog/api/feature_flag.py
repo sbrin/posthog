@@ -25,7 +25,7 @@ from posthog.hogql.property import parse_semver
 
 from posthog.api.cohort import CohortSerializer
 from posthog.api.dashboards.dashboard import Dashboard
-from posthog.api.documentation import extend_schema
+from posthog.api.documentation import FeatureFlagFiltersSchemaSerializer, extend_schema
 from posthog.api.forbid_destroy_model import ForbidDestroyModel
 from posthog.api.mixins import validated_request
 from posthog.api.routing import TeamAndOrgViewSetMixin
@@ -127,6 +127,15 @@ FEATURE_FLAG_OPERATOR_ALIASES: dict[str, str] = {
     "min": "gte",
     "max": "lte",
 }
+
+FEATURE_FLAG_CREATION_CONTEXT_CHOICES = (
+    "feature_flags",
+    "experiments",
+    "surveys",
+    "early_access_features",
+    "web_experiments",
+    "product_tours",
+)
 
 LOCAL_EVALUATION_REQUEST_COUNTER = Counter(
     "posthog_local_evaluation_request_total",
@@ -521,6 +530,72 @@ class EvaluationTagSerializerMixin(serializers.Serializer):
         return ret
 
 
+class FeatureFlagCreateRequestSchemaSerializer(serializers.Serializer):
+    key = serializers.CharField(required=False, help_text="Feature flag key.")
+    name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Feature flag description (stored in the `name` field for backwards compatibility).",
+    )
+    filters = FeatureFlagFiltersSchemaSerializer(required=False, help_text="Feature flag targeting configuration.")
+    active = serializers.BooleanField(required=False, help_text="Whether the feature flag is active.")
+    tags = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="Organizational tags for this feature flag.",
+    )
+    evaluation_tags = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="Evaluation context tags. Must be a subset of `tags`.",
+    )
+    creation_context = serializers.ChoiceField(
+        choices=FEATURE_FLAG_CREATION_CONTEXT_CHOICES,
+        required=False,
+        help_text="Origin context for this feature flag.",
+    )
+    _create_in_folder = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Optional folder short ID to place the feature flag in.",
+    )
+    _should_create_usage_dashboard = serializers.BooleanField(
+        required=False,
+        help_text="Whether to generate a usage dashboard after flag creation.",
+    )
+
+
+class FeatureFlagPartialUpdateRequestSchemaSerializer(serializers.Serializer):
+    key = serializers.CharField(required=False, help_text="Feature flag key.")
+    name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Feature flag description (stored in the `name` field for backwards compatibility).",
+    )
+    filters = FeatureFlagFiltersSchemaSerializer(required=False, help_text="Feature flag targeting configuration.")
+    active = serializers.BooleanField(required=False, help_text="Whether the feature flag is active.")
+    tags = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="Organizational tags for this feature flag.",
+    )
+    evaluation_tags = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="Evaluation context tags. Must be a subset of `tags`.",
+    )
+    deleted = serializers.BooleanField(required=False, help_text="Soft-delete flag state.")
+    _create_in_folder = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Optional folder short ID to place the feature flag in.",
+    )
+    _should_create_usage_dashboard = serializers.BooleanField(
+        required=False,
+        help_text="Whether to generate a usage dashboard when creating metadata.",
+    )
+
+
 class FeatureFlagSerializer(
     TaggedItemSerializerMixin,
     EvaluationTagSerializerMixin,
@@ -556,14 +631,7 @@ class FeatureFlagSerializer(
     )
     can_edit = serializers.SerializerMethodField()
 
-    CREATION_CONTEXT_CHOICES = (
-        "feature_flags",
-        "experiments",
-        "surveys",
-        "early_access_features",
-        "web_experiments",
-        "product_tours",
-    )
+    CREATION_CONTEXT_CHOICES = FEATURE_FLAG_CREATION_CONTEXT_CHOICES
     creation_context = serializers.ChoiceField(
         choices=CREATION_CONTEXT_CHOICES,
         write_only=True,
@@ -1491,7 +1559,7 @@ class FeatureFlagSerializer(
         representation["filters"] = filters
         return representation
 
-    def get_experiment_set(self, obj):
+    def get_experiment_set(self, obj: FeatureFlag) -> list[int]:
         # Use the prefetched active experiments
         if hasattr(obj, "_active_experiments"):
             return [exp.id for exp in obj._active_experiments]
@@ -1707,6 +1775,14 @@ class FeatureFlagViewSet(
     queryset = FeatureFlag.objects_including_soft_deleted.all()
     serializer_class = FeatureFlagSerializer
 
+    @extend_schema(request=FeatureFlagCreateRequestSchemaSerializer)
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @extend_schema(request=FeatureFlagPartialUpdateRequestSchemaSerializer)
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
     def _filter_request(self, request: request.Request, queryset: QuerySet) -> QuerySet:
         """Apply filters from request query params to queryset."""
         return self._apply_filters(request.GET.dict(), queryset)
@@ -1823,7 +1899,7 @@ class FeatureFlagViewSet(
                 OpenApiTypes.STR,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                enum=["boolean", "multivariant", "experiment"],
+                enum=["boolean", "multivariant", "experiment", "remote_config"],
             ),
             OpenApiParameter(
                 "evaluation_runtime",

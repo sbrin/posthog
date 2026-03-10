@@ -1095,6 +1095,21 @@ public:
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };
 
+  class  JoinExprUnpivotContext : public JoinExprContext {
+  public:
+    JoinExprUnpivotContext(JoinExprContext *ctx);
+
+    JoinExprContext *joinExpr();
+    antlr4::tree::TerminalNode *UNPIVOT();
+    antlr4::tree::TerminalNode *LPAREN();
+    UnpivotColumnListContext *unpivotColumnList();
+    antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *INCLUDE();
+    antlr4::tree::TerminalNode *NULLS();
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
   class  JoinExprParensContext : public JoinExprContext {
   public:
     JoinExprParensContext(JoinExprContext *ctx);
@@ -1861,6 +1876,7 @@ public:
 
     HogQLParser::ColumnExprListContext *columnExprs = nullptr;
     HogQLParser::ColumnExprListContext *columnArgList = nullptr;
+    HogQLParser::ColumnExprContext *filterExpr = nullptr;
     std::vector<IdentifierContext *> identifier();
     IdentifierContext* identifier(size_t i);
     antlr4::tree::TerminalNode *OVER();
@@ -1868,6 +1884,9 @@ public:
     antlr4::tree::TerminalNode* LPAREN(size_t i);
     std::vector<antlr4::tree::TerminalNode *> RPAREN();
     antlr4::tree::TerminalNode* RPAREN(size_t i);
+    antlr4::tree::TerminalNode *FILTER();
+    antlr4::tree::TerminalNode *WHERE();
+    ColumnExprContext *columnExpr();
     std::vector<ColumnExprListContext *> columnExprList();
     ColumnExprListContext* columnExprList(size_t i);
     antlr4::tree::TerminalNode *DISTINCT();
@@ -2472,6 +2491,7 @@ public:
 
     HogQLParser::ColumnExprListContext *columnExprs = nullptr;
     HogQLParser::ColumnExprListContext *columnArgList = nullptr;
+    HogQLParser::ColumnExprContext *filterExpr = nullptr;
     IdentifierContext *identifier();
     antlr4::tree::TerminalNode *OVER();
     std::vector<antlr4::tree::TerminalNode *> LPAREN();
@@ -2479,6 +2499,9 @@ public:
     WindowExprContext *windowExpr();
     std::vector<antlr4::tree::TerminalNode *> RPAREN();
     antlr4::tree::TerminalNode* RPAREN(size_t i);
+    antlr4::tree::TerminalNode *FILTER();
+    antlr4::tree::TerminalNode *WHERE();
+    ColumnExprContext *columnExpr();
     std::vector<ColumnExprListContext *> columnExprList();
     ColumnExprListContext* columnExprList(size_t i);
     antlr4::tree::TerminalNode *DISTINCT();

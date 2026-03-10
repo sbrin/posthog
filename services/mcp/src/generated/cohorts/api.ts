@@ -44,7 +44,7 @@ export const CohortsListResponse = zod.object({
     previous: zod.string().url().nullish(),
     results: zod.array(
         zod.object({
-            id: zod.number(),
+            id: zod.number().optional(),
             name: zod.string().max(cohortsListResponseResultsItemNameMax).nullish(),
             description: zod.string().max(cohortsListResponseResultsItemDescriptionMax).optional(),
             groups: zod.unknown().optional(),
@@ -135,44 +135,46 @@ export const CohortsListResponse = zod.object({
                 })
                 .nullish(),
             query: zod.unknown().nullish(),
-            version: zod.number().nullable(),
-            pending_version: zod.number().nullable(),
-            is_calculating: zod.boolean(),
-            created_by: zod.object({
-                id: zod.number(),
-                uuid: zod.string(),
-                distinct_id: zod.string().max(cohortsListResponseResultsItemCreatedByOneDistinctIdMax).nullish(),
-                first_name: zod.string().max(cohortsListResponseResultsItemCreatedByOneFirstNameMax).optional(),
-                last_name: zod.string().max(cohortsListResponseResultsItemCreatedByOneLastNameMax).optional(),
-                email: zod.string().email().max(cohortsListResponseResultsItemCreatedByOneEmailMax),
-                is_email_verified: zod.boolean().nullish(),
-                hedgehog_config: zod.record(zod.string(), zod.unknown()).nullable(),
-                role_at_organization: zod
-                    .union([
-                        zod
-                            .enum([
-                                'engineering',
-                                'data',
-                                'product',
-                                'founder',
-                                'leadership',
-                                'marketing',
-                                'sales',
-                                'other',
-                            ])
-                            .describe(
-                                '* `engineering` - Engineering\n* `data` - Data\n* `product` - Product Management\n* `founder` - Founder\n* `leadership` - Leadership\n* `marketing` - Marketing\n* `sales` - Sales / Success\n* `other` - Other'
-                            ),
-                        zod.enum(['']),
-                        zod.literal(null),
-                    ])
-                    .nullish(),
-            }),
-            created_at: zod.string().datetime({}).nullable(),
-            last_calculation: zod.string().datetime({}).nullable(),
-            errors_calculating: zod.number(),
-            last_error_message: zod.string().nullable(),
-            count: zod.number().nullable(),
+            version: zod.number().nullish(),
+            pending_version: zod.number().nullish(),
+            is_calculating: zod.boolean().optional(),
+            created_by: zod
+                .object({
+                    id: zod.number().optional(),
+                    uuid: zod.string().optional(),
+                    distinct_id: zod.string().max(cohortsListResponseResultsItemCreatedByOneDistinctIdMax).nullish(),
+                    first_name: zod.string().max(cohortsListResponseResultsItemCreatedByOneFirstNameMax).optional(),
+                    last_name: zod.string().max(cohortsListResponseResultsItemCreatedByOneLastNameMax).optional(),
+                    email: zod.string().email().max(cohortsListResponseResultsItemCreatedByOneEmailMax),
+                    is_email_verified: zod.boolean().nullish(),
+                    hedgehog_config: zod.record(zod.string(), zod.unknown()).nullish(),
+                    role_at_organization: zod
+                        .union([
+                            zod
+                                .enum([
+                                    'engineering',
+                                    'data',
+                                    'product',
+                                    'founder',
+                                    'leadership',
+                                    'marketing',
+                                    'sales',
+                                    'other',
+                                ])
+                                .describe(
+                                    '* `engineering` - Engineering\n* `data` - Data\n* `product` - Product Management\n* `founder` - Founder\n* `leadership` - Leadership\n* `marketing` - Marketing\n* `sales` - Sales / Success\n* `other` - Other'
+                                ),
+                            zod.enum(['']),
+                            zod.literal(null),
+                        ])
+                        .nullish(),
+                })
+                .optional(),
+            created_at: zod.string().datetime({}).nullish(),
+            last_calculation: zod.string().datetime({}).nullish(),
+            errors_calculating: zod.number().optional(),
+            last_error_message: zod.string().nullish(),
+            count: zod.number().nullish(),
             is_static: zod.boolean().optional(),
             cohort_type: zod
                 .union([
@@ -188,7 +190,7 @@ export const CohortsListResponse = zod.object({
                 .describe(
                     'Type of cohort based on filter complexity\n\n* `static` - static\n* `person_property` - person_property\n* `behavioral` - behavioral\n* `realtime` - realtime\n* `analytical` - analytical'
                 ),
-            experiment_set: zod.array(zod.number()),
+            experiment_set: zod.array(zod.number()).optional(),
             _create_in_folder: zod.string().optional(),
             _create_static_person_ids: zod
                 .array(zod.string())
@@ -345,7 +347,7 @@ export const cohortsRetrieveResponseCreatedByOneEmailMax = 254
 export const cohortsRetrieveResponseCreateStaticPersonIdsDefault = []
 
 export const CohortsRetrieveResponse = zod.object({
-    id: zod.number(),
+    id: zod.number().optional(),
     name: zod.string().max(cohortsRetrieveResponseNameMax).nullish(),
     description: zod.string().max(cohortsRetrieveResponseDescriptionMax).optional(),
     groups: zod.unknown().optional(),
@@ -430,35 +432,46 @@ export const CohortsRetrieveResponse = zod.object({
         })
         .nullish(),
     query: zod.unknown().nullish(),
-    version: zod.number().nullable(),
-    pending_version: zod.number().nullable(),
-    is_calculating: zod.boolean(),
-    created_by: zod.object({
-        id: zod.number(),
-        uuid: zod.string(),
-        distinct_id: zod.string().max(cohortsRetrieveResponseCreatedByOneDistinctIdMax).nullish(),
-        first_name: zod.string().max(cohortsRetrieveResponseCreatedByOneFirstNameMax).optional(),
-        last_name: zod.string().max(cohortsRetrieveResponseCreatedByOneLastNameMax).optional(),
-        email: zod.string().email().max(cohortsRetrieveResponseCreatedByOneEmailMax),
-        is_email_verified: zod.boolean().nullish(),
-        hedgehog_config: zod.record(zod.string(), zod.unknown()).nullable(),
-        role_at_organization: zod
-            .union([
-                zod
-                    .enum(['engineering', 'data', 'product', 'founder', 'leadership', 'marketing', 'sales', 'other'])
-                    .describe(
-                        '* `engineering` - Engineering\n* `data` - Data\n* `product` - Product Management\n* `founder` - Founder\n* `leadership` - Leadership\n* `marketing` - Marketing\n* `sales` - Sales / Success\n* `other` - Other'
-                    ),
-                zod.enum(['']),
-                zod.literal(null),
-            ])
-            .nullish(),
-    }),
-    created_at: zod.string().datetime({}).nullable(),
-    last_calculation: zod.string().datetime({}).nullable(),
-    errors_calculating: zod.number(),
-    last_error_message: zod.string().nullable(),
-    count: zod.number().nullable(),
+    version: zod.number().nullish(),
+    pending_version: zod.number().nullish(),
+    is_calculating: zod.boolean().optional(),
+    created_by: zod
+        .object({
+            id: zod.number().optional(),
+            uuid: zod.string().optional(),
+            distinct_id: zod.string().max(cohortsRetrieveResponseCreatedByOneDistinctIdMax).nullish(),
+            first_name: zod.string().max(cohortsRetrieveResponseCreatedByOneFirstNameMax).optional(),
+            last_name: zod.string().max(cohortsRetrieveResponseCreatedByOneLastNameMax).optional(),
+            email: zod.string().email().max(cohortsRetrieveResponseCreatedByOneEmailMax),
+            is_email_verified: zod.boolean().nullish(),
+            hedgehog_config: zod.record(zod.string(), zod.unknown()).nullish(),
+            role_at_organization: zod
+                .union([
+                    zod
+                        .enum([
+                            'engineering',
+                            'data',
+                            'product',
+                            'founder',
+                            'leadership',
+                            'marketing',
+                            'sales',
+                            'other',
+                        ])
+                        .describe(
+                            '* `engineering` - Engineering\n* `data` - Data\n* `product` - Product Management\n* `founder` - Founder\n* `leadership` - Leadership\n* `marketing` - Marketing\n* `sales` - Sales / Success\n* `other` - Other'
+                        ),
+                    zod.enum(['']),
+                    zod.literal(null),
+                ])
+                .nullish(),
+        })
+        .optional(),
+    created_at: zod.string().datetime({}).nullish(),
+    last_calculation: zod.string().datetime({}).nullish(),
+    errors_calculating: zod.number().optional(),
+    last_error_message: zod.string().nullish(),
+    count: zod.number().nullish(),
     is_static: zod.boolean().optional(),
     cohort_type: zod
         .union([
@@ -474,7 +487,7 @@ export const CohortsRetrieveResponse = zod.object({
         .describe(
             'Type of cohort based on filter complexity\n\n* `static` - static\n* `person_property` - person_property\n* `behavioral` - behavioral\n* `realtime` - realtime\n* `analytical` - analytical'
         ),
-    experiment_set: zod.array(zod.number()),
+    experiment_set: zod.array(zod.number()).optional(),
     _create_in_folder: zod.string().optional(),
     _create_static_person_ids: zod.array(zod.string()).default(cohortsRetrieveResponseCreateStaticPersonIdsDefault),
 })
@@ -619,7 +632,7 @@ export const cohortsUpdateResponseCreatedByOneEmailMax = 254
 export const cohortsUpdateResponseCreateStaticPersonIdsDefault = []
 
 export const CohortsUpdateResponse = zod.object({
-    id: zod.number(),
+    id: zod.number().optional(),
     name: zod.string().max(cohortsUpdateResponseNameMax).nullish(),
     description: zod.string().max(cohortsUpdateResponseDescriptionMax).optional(),
     groups: zod.unknown().optional(),
@@ -704,35 +717,46 @@ export const CohortsUpdateResponse = zod.object({
         })
         .nullish(),
     query: zod.unknown().nullish(),
-    version: zod.number().nullable(),
-    pending_version: zod.number().nullable(),
-    is_calculating: zod.boolean(),
-    created_by: zod.object({
-        id: zod.number(),
-        uuid: zod.string(),
-        distinct_id: zod.string().max(cohortsUpdateResponseCreatedByOneDistinctIdMax).nullish(),
-        first_name: zod.string().max(cohortsUpdateResponseCreatedByOneFirstNameMax).optional(),
-        last_name: zod.string().max(cohortsUpdateResponseCreatedByOneLastNameMax).optional(),
-        email: zod.string().email().max(cohortsUpdateResponseCreatedByOneEmailMax),
-        is_email_verified: zod.boolean().nullish(),
-        hedgehog_config: zod.record(zod.string(), zod.unknown()).nullable(),
-        role_at_organization: zod
-            .union([
-                zod
-                    .enum(['engineering', 'data', 'product', 'founder', 'leadership', 'marketing', 'sales', 'other'])
-                    .describe(
-                        '* `engineering` - Engineering\n* `data` - Data\n* `product` - Product Management\n* `founder` - Founder\n* `leadership` - Leadership\n* `marketing` - Marketing\n* `sales` - Sales / Success\n* `other` - Other'
-                    ),
-                zod.enum(['']),
-                zod.literal(null),
-            ])
-            .nullish(),
-    }),
-    created_at: zod.string().datetime({}).nullable(),
-    last_calculation: zod.string().datetime({}).nullable(),
-    errors_calculating: zod.number(),
-    last_error_message: zod.string().nullable(),
-    count: zod.number().nullable(),
+    version: zod.number().nullish(),
+    pending_version: zod.number().nullish(),
+    is_calculating: zod.boolean().optional(),
+    created_by: zod
+        .object({
+            id: zod.number().optional(),
+            uuid: zod.string().optional(),
+            distinct_id: zod.string().max(cohortsUpdateResponseCreatedByOneDistinctIdMax).nullish(),
+            first_name: zod.string().max(cohortsUpdateResponseCreatedByOneFirstNameMax).optional(),
+            last_name: zod.string().max(cohortsUpdateResponseCreatedByOneLastNameMax).optional(),
+            email: zod.string().email().max(cohortsUpdateResponseCreatedByOneEmailMax),
+            is_email_verified: zod.boolean().nullish(),
+            hedgehog_config: zod.record(zod.string(), zod.unknown()).nullish(),
+            role_at_organization: zod
+                .union([
+                    zod
+                        .enum([
+                            'engineering',
+                            'data',
+                            'product',
+                            'founder',
+                            'leadership',
+                            'marketing',
+                            'sales',
+                            'other',
+                        ])
+                        .describe(
+                            '* `engineering` - Engineering\n* `data` - Data\n* `product` - Product Management\n* `founder` - Founder\n* `leadership` - Leadership\n* `marketing` - Marketing\n* `sales` - Sales / Success\n* `other` - Other'
+                        ),
+                    zod.enum(['']),
+                    zod.literal(null),
+                ])
+                .nullish(),
+        })
+        .optional(),
+    created_at: zod.string().datetime({}).nullish(),
+    last_calculation: zod.string().datetime({}).nullish(),
+    errors_calculating: zod.number().optional(),
+    last_error_message: zod.string().nullish(),
+    count: zod.number().nullish(),
     is_static: zod.boolean().optional(),
     cohort_type: zod
         .union([
@@ -748,7 +772,7 @@ export const CohortsUpdateResponse = zod.object({
         .describe(
             'Type of cohort based on filter complexity\n\n* `static` - static\n* `person_property` - person_property\n* `behavioral` - behavioral\n* `realtime` - realtime\n* `analytical` - analytical'
         ),
-    experiment_set: zod.array(zod.number()),
+    experiment_set: zod.array(zod.number()).optional(),
     _create_in_folder: zod.string().optional(),
     _create_static_person_ids: zod.array(zod.string()).default(cohortsUpdateResponseCreateStaticPersonIdsDefault),
 })
@@ -895,7 +919,7 @@ export const cohortsPartialUpdateResponseCreatedByOneEmailMax = 254
 export const cohortsPartialUpdateResponseCreateStaticPersonIdsDefault = []
 
 export const CohortsPartialUpdateResponse = zod.object({
-    id: zod.number(),
+    id: zod.number().optional(),
     name: zod.string().max(cohortsPartialUpdateResponseNameMax).nullish(),
     description: zod.string().max(cohortsPartialUpdateResponseDescriptionMax).optional(),
     groups: zod.unknown().optional(),
@@ -986,35 +1010,46 @@ export const CohortsPartialUpdateResponse = zod.object({
         })
         .nullish(),
     query: zod.unknown().nullish(),
-    version: zod.number().nullable(),
-    pending_version: zod.number().nullable(),
-    is_calculating: zod.boolean(),
-    created_by: zod.object({
-        id: zod.number(),
-        uuid: zod.string(),
-        distinct_id: zod.string().max(cohortsPartialUpdateResponseCreatedByOneDistinctIdMax).nullish(),
-        first_name: zod.string().max(cohortsPartialUpdateResponseCreatedByOneFirstNameMax).optional(),
-        last_name: zod.string().max(cohortsPartialUpdateResponseCreatedByOneLastNameMax).optional(),
-        email: zod.string().email().max(cohortsPartialUpdateResponseCreatedByOneEmailMax),
-        is_email_verified: zod.boolean().nullish(),
-        hedgehog_config: zod.record(zod.string(), zod.unknown()).nullable(),
-        role_at_organization: zod
-            .union([
-                zod
-                    .enum(['engineering', 'data', 'product', 'founder', 'leadership', 'marketing', 'sales', 'other'])
-                    .describe(
-                        '* `engineering` - Engineering\n* `data` - Data\n* `product` - Product Management\n* `founder` - Founder\n* `leadership` - Leadership\n* `marketing` - Marketing\n* `sales` - Sales / Success\n* `other` - Other'
-                    ),
-                zod.enum(['']),
-                zod.literal(null),
-            ])
-            .nullish(),
-    }),
-    created_at: zod.string().datetime({}).nullable(),
-    last_calculation: zod.string().datetime({}).nullable(),
-    errors_calculating: zod.number(),
-    last_error_message: zod.string().nullable(),
-    count: zod.number().nullable(),
+    version: zod.number().nullish(),
+    pending_version: zod.number().nullish(),
+    is_calculating: zod.boolean().optional(),
+    created_by: zod
+        .object({
+            id: zod.number().optional(),
+            uuid: zod.string().optional(),
+            distinct_id: zod.string().max(cohortsPartialUpdateResponseCreatedByOneDistinctIdMax).nullish(),
+            first_name: zod.string().max(cohortsPartialUpdateResponseCreatedByOneFirstNameMax).optional(),
+            last_name: zod.string().max(cohortsPartialUpdateResponseCreatedByOneLastNameMax).optional(),
+            email: zod.string().email().max(cohortsPartialUpdateResponseCreatedByOneEmailMax),
+            is_email_verified: zod.boolean().nullish(),
+            hedgehog_config: zod.record(zod.string(), zod.unknown()).nullish(),
+            role_at_organization: zod
+                .union([
+                    zod
+                        .enum([
+                            'engineering',
+                            'data',
+                            'product',
+                            'founder',
+                            'leadership',
+                            'marketing',
+                            'sales',
+                            'other',
+                        ])
+                        .describe(
+                            '* `engineering` - Engineering\n* `data` - Data\n* `product` - Product Management\n* `founder` - Founder\n* `leadership` - Leadership\n* `marketing` - Marketing\n* `sales` - Sales / Success\n* `other` - Other'
+                        ),
+                    zod.enum(['']),
+                    zod.literal(null),
+                ])
+                .nullish(),
+        })
+        .optional(),
+    created_at: zod.string().datetime({}).nullish(),
+    last_calculation: zod.string().datetime({}).nullish(),
+    errors_calculating: zod.number().optional(),
+    last_error_message: zod.string().nullish(),
+    count: zod.number().nullish(),
     is_static: zod.boolean().optional(),
     cohort_type: zod
         .union([
@@ -1030,7 +1065,7 @@ export const CohortsPartialUpdateResponse = zod.object({
         .describe(
             'Type of cohort based on filter complexity\n\n* `static` - static\n* `person_property` - person_property\n* `behavioral` - behavioral\n* `realtime` - realtime\n* `analytical` - analytical'
         ),
-    experiment_set: zod.array(zod.number()),
+    experiment_set: zod.array(zod.number()).optional(),
     _create_in_folder: zod.string().optional(),
     _create_static_person_ids: zod
         .array(zod.string())

@@ -8,9 +8,30 @@ import {
     FeatureFlagsListQueryParams,
     FeatureFlagsPartialUpdateBody,
     FeatureFlagsPartialUpdateParams,
-    FeatureFlagsRetrieve2Params,
+    FeatureFlagsRetrieveParams,
 } from '@/generated/feature_flags/api'
 import type { Context, ToolBase, ZodObjectAny } from '@/tools/types'
+
+const FeatureFlagGetDefinitionSchema = FeatureFlagsRetrieveParams.omit({ project_id: true })
+
+const featureFlagGetDefinition = (): ToolBase<
+    typeof FeatureFlagGetDefinitionSchema,
+    Schemas.FeatureFlag & { _posthogUrl: string }
+> => ({
+    name: 'feature-flag-get-definition',
+    schema: FeatureFlagGetDefinitionSchema,
+    handler: async (context: Context, params: z.infer<typeof FeatureFlagGetDefinitionSchema>) => {
+        const projectId = await context.stateManager.getProjectId()
+        const result = await context.api.request<Schemas.FeatureFlag>({
+            method: 'GET',
+            path: `/api/projects/${projectId}/feature_flags/${params.id}/`,
+        })
+        return {
+            ...(result as any),
+            _posthogUrl: `${context.api.getProjectBaseUrl(projectId)}/feature_flags/${(result as any).id}`,
+        }
+    },
+})
 
 const FeatureFlagGetAllSchema = FeatureFlagsListQueryParams
 
@@ -43,27 +64,6 @@ const featureFlagGetAll = (): ToolBase<typeof FeatureFlagGetAllSchema, unknown> 
                 _posthogUrl: `${context.api.getProjectBaseUrl(projectId)}/feature_flags/${item.id}`,
             })),
             _posthogUrl: `${context.api.getProjectBaseUrl(projectId)}/feature_flags`,
-        }
-    },
-})
-
-const FeatureFlagGetDefinitionSchema = FeatureFlagsRetrieve2Params.omit({ project_id: true })
-
-const featureFlagGetDefinition = (): ToolBase<
-    typeof FeatureFlagGetDefinitionSchema,
-    Schemas.FeatureFlag & { _posthogUrl: string }
-> => ({
-    name: 'feature-flag-get-definition',
-    schema: FeatureFlagGetDefinitionSchema,
-    handler: async (context: Context, params: z.infer<typeof FeatureFlagGetDefinitionSchema>) => {
-        const projectId = await context.stateManager.getProjectId()
-        const result = await context.api.request<Schemas.FeatureFlag>({
-            method: 'GET',
-            path: `/api/projects/${projectId}/feature_flags/${params.id}/`,
-        })
-        return {
-            ...(result as any),
-            _posthogUrl: `${context.api.getProjectBaseUrl(projectId)}/feature_flags/${(result as any).id}`,
         }
     },
 })
@@ -174,8 +174,8 @@ const deleteFeatureFlag = (): ToolBase<typeof DeleteFeatureFlagSchema, unknown> 
 })
 
 export const GENERATED_TOOLS: Record<string, () => ToolBase<ZodObjectAny>> = {
-    'feature-flag-get-all': featureFlagGetAll,
     'feature-flag-get-definition': featureFlagGetDefinition,
+    'feature-flag-get-all': featureFlagGetAll,
     'create-feature-flag': createFeatureFlag,
     'update-feature-flag': updateFeatureFlag,
     'delete-feature-flag': deleteFeatureFlag,

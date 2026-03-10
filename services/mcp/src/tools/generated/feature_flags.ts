@@ -8,11 +8,11 @@ import {
     FeatureFlagsListQueryParams,
     FeatureFlagsPartialUpdateBody,
     FeatureFlagsPartialUpdateParams,
-    FeatureFlagsRetrieveParams,
+    FeatureFlagsRetrieve2Params,
 } from '@/generated/feature_flags/api'
 import type { Context, ToolBase, ZodObjectAny } from '@/tools/types'
 
-const FeatureFlagGetDefinitionSchema = FeatureFlagsRetrieveParams.omit({ project_id: true })
+const FeatureFlagGetDefinitionSchema = FeatureFlagsRetrieve2Params.omit({ project_id: true })
 
 const featureFlagGetDefinition = (): ToolBase<
     typeof FeatureFlagGetDefinitionSchema,

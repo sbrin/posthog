@@ -9,7 +9,7 @@ feature: flags
 url_prefix: /feature_flags
 tools:
     feature-flag-get-definition:
-        operation: feature_flags_retrieve_2
+        operation: feature_flags_retrieve
         enabled: true
         scopes:
             - feature_flag:read

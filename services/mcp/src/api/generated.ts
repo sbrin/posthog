@@ -6933,8 +6933,12 @@ export namespace Schemas {
       readonly filters: DashboardFilters;
       /** @nullable */
       readonly variables: DashboardVariables;
+      /** Custom color mapping for breakdown values. */
       breakdown_colors?: unknown;
-      /** @nullable */
+      /**
+       * ID of the color theme used for chart visualizations.
+       * @nullable
+       */
       data_color_theme_id?: number | null;
       tags?: unknown[];
       /**
@@ -6959,9 +6963,14 @@ export namespace Schemas {
       readonly team_id: number;
       /** @nullable */
       readonly tiles: readonly DashboardTilesItem[] | null;
+      /** Template key to create the dashboard from a predefined template. */
       use_template?: string;
-      /** @nullable */
+      /**
+       * ID of an existing dashboard to duplicate.
+       * @nullable
+       */
       use_dashboard?: number | null;
+      /** When deleting, also delete insights that are only on this dashboard. */
       delete_insights?: boolean;
       _create_in_folder?: string;
     }
@@ -6971,9 +6980,14 @@ export namespace Schemas {
      */
     export interface DashboardBasic {
       readonly id: number;
-      /** @nullable */
+      /**
+       * Name of the dashboard.
+       * @nullable
+       */
       readonly name: string | null;
+      /** Description of the dashboard. */
       readonly description: string;
+      /** Whether the dashboard is pinned to the top of the list. */
       readonly pinned: boolean;
       readonly created_at: string;
       readonly created_by: UserBasic;
@@ -6985,6 +6999,10 @@ export namespace Schemas {
       readonly deleted: boolean;
       readonly creation_mode: CreationModeEnum;
       tags?: unknown[];
+      /** Controls who can edit the dashboard.
+
+    * `21` - Everyone in the project can edit
+    * `37` - Only those invited to this dashboard can edit */
       readonly restriction_level: DashboardRestrictionLevel;
       readonly effective_restriction_level: EffectiveRestrictionLevelEnum;
       readonly effective_privilege_level: EffectivePrivilegeLevelEnum;
@@ -19544,8 +19562,12 @@ export namespace Schemas {
       readonly filters?: PatchedDashboardFilters;
       /** @nullable */
       readonly variables?: PatchedDashboardVariables;
+      /** Custom color mapping for breakdown values. */
       breakdown_colors?: unknown;
-      /** @nullable */
+      /**
+       * ID of the color theme used for chart visualizations.
+       * @nullable
+       */
       data_color_theme_id?: number | null;
       tags?: unknown[];
       /**
@@ -19570,9 +19592,14 @@ export namespace Schemas {
       readonly team_id?: number;
       /** @nullable */
       readonly tiles?: readonly PatchedDashboardTilesItem[] | null;
+      /** Template key to create the dashboard from a predefined template. */
       use_template?: string;
-      /** @nullable */
+      /**
+       * ID of an existing dashboard to duplicate.
+       * @nullable
+       */
       use_dashboard?: number | null;
+      /** When deleting, also delete insights that are only on this dashboard. */
       delete_insights?: boolean;
       _create_in_folder?: string;
     }
@@ -25300,6 +25327,14 @@ export namespace Schemas {
       query: EventsNode | ActionsNode | PersonsNode | DataWarehouseNode | EventsQuery | SessionsQuery | ActorsQuery | GroupsQuery | InsightActorsQuery | InsightActorsQueryOptions | SessionsTimelineQuery | HogQuery | HogQLQuery | HogQLMetadata | HogQLAutocomplete | SessionAttributionExplorerQuery | RevenueExampleEventsQuery | RevenueExampleDataWarehouseTablesQuery | ErrorTrackingQuery | ErrorTrackingSimilarIssuesQuery | ErrorTrackingBreakdownsQuery | ErrorTrackingIssueCorrelationQuery | ExperimentFunnelsQuery | ExperimentTrendsQuery | ExperimentQuery | ExperimentExposureQuery | DocumentSimilarityQuery | WebOverviewQuery | WebStatsTableQuery | WebExternalClicksTableQuery | WebGoalsQuery | WebVitalsQuery | WebVitalsPathBreakdownQuery | WebPageURLSearchQuery | WebAnalyticsExternalSummaryQuery | RevenueAnalyticsGrossRevenueQuery | RevenueAnalyticsMetricsQuery | RevenueAnalyticsMRRQuery | RevenueAnalyticsOverviewQuery | RevenueAnalyticsTopCustomersQuery | MarketingAnalyticsTableQuery | MarketingAnalyticsAggregatedQuery | NonIntegratedConversionsTableQuery | DataVisualizationNode | DataTableNode | SavedInsightNode | InsightVizNode | TrendsQuery | FunnelsQuery | RetentionQuery | PathsQuery | StickinessQuery | LifecycleQuery | FunnelCorrelationQuery | DatabaseSchemaQuery | LogsQuery | LogAttributesQuery | LogValuesQuery | SuggestedQuestionsQuery | TeamTaxonomyQuery | EventTaxonomyQuery | ActorsPropertyTaxonomyQuery | TracesQuery | TraceQuery | TraceNeighborsQuery | VectorSearchQuery | UsageMetricsQuery | EndpointsUsageOverviewQuery | EndpointsUsageTableQuery | EndpointsUsageTrendsQuery | PropertyValuesQuery;
     }
 
+    export interface ReorderTilesRequest {
+      /**
+       * Array of tile IDs in the desired display order (top to bottom, left to right).
+       * @minItems 1
+       */
+      tile_order: number[];
+    }
+
     export interface ScanEvidence {
       /** Number of files scanned */
       filesScanned: number;
@@ -26267,6 +26302,18 @@ export namespace Schemas {
 
 
     export const EnvironmentsDashboardsMoveTilePartialUpdateFormat = {
+      Json: 'json',
+      Txt: 'txt',
+    } as const;
+
+    export type EnvironmentsDashboardsReorderTilesCreateParams = {
+    format?: EnvironmentsDashboardsReorderTilesCreateFormat;
+    };
+
+    export type EnvironmentsDashboardsReorderTilesCreateFormat = typeof EnvironmentsDashboardsReorderTilesCreateFormat[keyof typeof EnvironmentsDashboardsReorderTilesCreateFormat];
+
+
+    export const EnvironmentsDashboardsReorderTilesCreateFormat = {
       Json: 'json',
       Txt: 'txt',
     } as const;
@@ -28402,6 +28449,18 @@ export namespace Schemas {
 
 
     export const DashboardsMoveTilePartialUpdateFormat = {
+      Json: 'json',
+      Txt: 'txt',
+    } as const;
+
+    export type DashboardsReorderTilesCreateParams = {
+    format?: DashboardsReorderTilesCreateFormat;
+    };
+
+    export type DashboardsReorderTilesCreateFormat = typeof DashboardsReorderTilesCreateFormat[keyof typeof DashboardsReorderTilesCreateFormat];
+
+
+    export const DashboardsReorderTilesCreateFormat = {
       Json: 'json',
       Txt: 'txt',
     } as const;

@@ -1,12 +1,5 @@
 import { z } from 'zod'
 
-import {
-    AddInsightToDashboardSchema,
-    CreateDashboardInputSchema,
-    ListDashboardsSchema,
-    ReorderDashboardTilesSchema,
-    UpdateDashboardInputSchema,
-} from './dashboards'
 import { ErrorDetailsSchema, ListErrorsSchema, UpdateIssueStatusSchema } from './errors'
 import { FilterGroupsSchema, UpdateFeatureFlagInputSchema } from './flags'
 import { CreateInsightInputSchema, ListInsightsSchema, UpdateInsightInputSchema } from './insights'
@@ -19,33 +12,6 @@ import {
     ListSurveysInputSchema,
     UpdateSurveyInputSchema,
 } from './surveys'
-
-export const DashboardAddInsightSchema = z.object({
-    data: AddInsightToDashboardSchema,
-})
-
-export const DashboardCreateSchema = z.object({
-    data: CreateDashboardInputSchema,
-})
-
-export const DashboardDeleteSchema = z.object({
-    dashboardId: z.number(),
-})
-
-export const DashboardGetSchema = z.object({
-    dashboardId: z.number(),
-})
-
-export const DashboardGetAllSchema = z.object({
-    data: ListDashboardsSchema.optional(),
-})
-
-export const DashboardUpdateSchema = z.object({
-    dashboardId: z.number(),
-    data: UpdateDashboardInputSchema,
-})
-
-export const DashboardReorderTilesSchema = ReorderDashboardTilesSchema
 
 export const DocumentationSearchSchema = z.object({
     query: z.string(),

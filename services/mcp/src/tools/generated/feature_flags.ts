@@ -12,27 +12,6 @@ import {
 } from '@/generated/feature_flags/api'
 import type { Context, ToolBase, ZodObjectAny } from '@/tools/types'
 
-const FeatureFlagGetDefinitionSchema = FeatureFlagsRetrieveParams.omit({ project_id: true })
-
-const featureFlagGetDefinition = (): ToolBase<
-    typeof FeatureFlagGetDefinitionSchema,
-    Schemas.FeatureFlag & { _posthogUrl: string }
-> => ({
-    name: 'feature-flag-get-definition',
-    schema: FeatureFlagGetDefinitionSchema,
-    handler: async (context: Context, params: z.infer<typeof FeatureFlagGetDefinitionSchema>) => {
-        const projectId = await context.stateManager.getProjectId()
-        const result = await context.api.request<Schemas.FeatureFlag>({
-            method: 'GET',
-            path: `/api/projects/${projectId}/feature_flags/${params.id}/`,
-        })
-        return {
-            ...(result as any),
-            _posthogUrl: `${context.api.getProjectBaseUrl(projectId)}/feature_flags/${(result as any).id}`,
-        }
-    },
-})
-
 const FeatureFlagGetAllSchema = FeatureFlagsListQueryParams
 
 const featureFlagGetAll = (): ToolBase<typeof FeatureFlagGetAllSchema, unknown> => ({
@@ -113,6 +92,27 @@ const createFeatureFlag = (): ToolBase<
     },
 })
 
+const FeatureFlagGetDefinitionSchema = FeatureFlagsRetrieveParams.omit({ project_id: true })
+
+const featureFlagGetDefinition = (): ToolBase<
+    typeof FeatureFlagGetDefinitionSchema,
+    Schemas.FeatureFlag & { _posthogUrl: string }
+> => ({
+    name: 'feature-flag-get-definition',
+    schema: FeatureFlagGetDefinitionSchema,
+    handler: async (context: Context, params: z.infer<typeof FeatureFlagGetDefinitionSchema>) => {
+        const projectId = await context.stateManager.getProjectId()
+        const result = await context.api.request<Schemas.FeatureFlag>({
+            method: 'GET',
+            path: `/api/projects/${projectId}/feature_flags/${params.id}/`,
+        })
+        return {
+            ...(result as any),
+            _posthogUrl: `${context.api.getProjectBaseUrl(projectId)}/feature_flags/${(result as any).id}`,
+        }
+    },
+})
+
 const UpdateFeatureFlagSchema = FeatureFlagsPartialUpdateParams.omit({ project_id: true }).extend(
     FeatureFlagsPartialUpdateBody.omit({ deleted: true, _create_in_folder: true, _should_create_usage_dashboard: true })
         .shape
@@ -174,9 +174,9 @@ const deleteFeatureFlag = (): ToolBase<typeof DeleteFeatureFlagSchema, unknown> 
 })
 
 export const GENERATED_TOOLS: Record<string, () => ToolBase<ZodObjectAny>> = {
-    'feature-flag-get-definition': featureFlagGetDefinition,
     'feature-flag-get-all': featureFlagGetAll,
     'create-feature-flag': createFeatureFlag,
+    'feature-flag-get-definition': featureFlagGetDefinition,
     'update-feature-flag': updateFeatureFlag,
     'delete-feature-flag': deleteFeatureFlag,
 }

@@ -50,7 +50,7 @@ tools:
             - tags
             - evaluation_tags
     feature-flag-get-definition:
-        operation: feature_flags_retrieve
+        operation: feature_flags_retrieve_2
         enabled: true
         scopes:
             - feature_flag:read

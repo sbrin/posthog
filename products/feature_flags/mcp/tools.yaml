@@ -8,23 +8,6 @@ category: Feature flags
 feature: flags
 url_prefix: /feature_flags
 tools:
-    feature-flag-get-definition:
-        operation: feature_flags_retrieve
-        enabled: true
-        scopes:
-            - feature_flag:read
-        annotations:
-            readOnly: true
-            destructive: false
-            idempotent: true
-        enrich_url: '{id}'
-        title: Get feature flag definition
-        description: |
-            Get a feature flag by ID.
-        mcp_version: 1
-    feature-flags-copy-flags-create:
-        operation: feature_flags_copy_flags_create
-        enabled: false
     feature-flag-get-all:
         operation: feature_flags_list
         enabled: true
@@ -66,6 +49,20 @@ tools:
             - active
             - tags
             - evaluation_tags
+    feature-flag-get-definition:
+        operation: feature_flags_retrieve
+        enabled: true
+        scopes:
+            - feature_flag:read
+        annotations:
+            readOnly: true
+            destructive: false
+            idempotent: true
+        enrich_url: '{id}'
+        title: Get feature flag definition
+        description: |
+            Get a feature flag by ID.
+        mcp_version: 1
     feature-flags-update:
         operation: feature_flags_update
         enabled: false
@@ -143,4 +140,7 @@ tools:
         enabled: false
     feature-flags-user-blast-radius-create:
         operation: feature_flags_user_blast_radius_create
+        enabled: false
+    feature-flags-copy-flags-create:
+        operation: feature_flags_copy_flags_create
         enabled: false

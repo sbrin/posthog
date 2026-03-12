@@ -563,7 +563,7 @@ export namespace Schemas {
       readonly created_by: UserBasic;
       deleted?: boolean;
       readonly is_calculating: boolean;
-      last_calculated_at?: string;
+      readonly last_calculated_at: string;
       readonly team_id: number;
       readonly is_action: boolean;
       /** @nullable */
@@ -19174,7 +19174,7 @@ export namespace Schemas {
       readonly created_by?: UserBasic;
       deleted?: boolean;
       readonly is_calculating?: boolean;
-      last_calculated_at?: string;
+      readonly last_calculated_at?: string;
       readonly team_id?: number;
       readonly is_action?: boolean;
       /** @nullable */

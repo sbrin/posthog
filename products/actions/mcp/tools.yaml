@@ -43,12 +43,6 @@ tools:
             submissions, or custom events. Each action can have multiple steps (OR conditions). Use actions to create
             composite events for insights and funnels. Example: Create a 'Sign Up Click' action with steps matching
             button clicks on the signup page.
-        exclude_params:
-            - deleted
-            - is_calculating
-            - bytecode_error
-            - creation_context
-            - last_calculated_at
         param_overrides:
             name:
                 description: Name of the action (must be unique within the project)
@@ -85,12 +79,6 @@ tools:
         title: Update action
         description: |
             Update an existing action by ID. Can update name, description, steps, tags, and Slack notification settings.
-        exclude_params:
-            - deleted
-            - is_calculating
-            - bytecode_error
-            - creation_context
-            - last_calculated_at
         ui_resource_uri: ui://posthog/action.html
     action-delete:
         operation: actions_destroy

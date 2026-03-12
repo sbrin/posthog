@@ -527,7 +527,7 @@ export interface ActionApi {
     readonly created_by: UserBasicApi
     deleted?: boolean
     readonly is_calculating: boolean
-    last_calculated_at?: string
+    readonly last_calculated_at: string
     readonly team_id: number
     readonly is_action: boolean
     /** @nullable */
@@ -582,7 +582,7 @@ export interface PatchedActionApi {
     readonly created_by?: UserBasicApi
     deleted?: boolean
     readonly is_calculating?: boolean
-    last_calculated_at?: string
+    readonly last_calculated_at?: string
     readonly team_id?: number
     readonly is_action?: boolean
     /** @nullable */

@@ -30,6 +30,7 @@ from .documentation import (
     ExistencePropertyFilterSerializer,
     NumericPropertyFilterSerializer,
     StringPropertyFilterSerializer,
+    disable_for_mcp,
 )
 from .forbid_destroy_model import ForbidDestroyModel
 from .tagged_item import TaggedItemSerializerMixin, TaggedItemViewSetMixin
@@ -139,9 +140,12 @@ class ActionSerializer(
         help_text="Action steps defining trigger conditions. Each step matches events by name, properties, URL, or element attributes. Multiple steps are OR-ed together.",
     )
     created_by = UserBasicSerializer(read_only=True)
-    is_calculating = serializers.SerializerMethodField()
+    deleted = disable_for_mcp(serializers.BooleanField(required=False, default=False))
+    is_calculating = disable_for_mcp(serializers.SerializerMethodField())
     is_action = serializers.BooleanField(read_only=True, default=True)
-    creation_context = serializers.SerializerMethodField()
+    bytecode_error = disable_for_mcp(serializers.CharField(read_only=True, required=False, allow_null=True))
+    last_calculated_at = disable_for_mcp(serializers.DateTimeField(read_only=True, required=False))
+    creation_context = disable_for_mcp(serializers.SerializerMethodField())
     _create_in_folder = serializers.CharField(required=False, allow_blank=True, write_only=True)
 
     class Meta:

@@ -27,7 +27,7 @@ use crate::{Client, CustomRedisError, RedisValueFormat};
 /// Each variant corresponds to the return type of a Redis command.
 #[derive(Debug, Clone, PartialEq)]
 pub enum PipelineResult {
-    /// Success with no return value (SET, DEL, HINCRBY, etc.)
+    /// Success with no return value (SET, DEL, HINCRBY, SADD, etc.)
     Ok,
     /// String value (GET)
     String(String),
@@ -82,6 +82,10 @@ pub enum PipelineCommand {
     },
     Scard {
         key: String,
+    },
+    SAdd {
+        key: String,
+        member: String,
     },
     ZRangeByScore {
         key: String,
@@ -236,6 +240,15 @@ impl<C> Pipeline<C> {
         self
     }
 
+    /// Add an SADD command to the pipeline.
+    pub fn sadd(mut self, key: impl Into<String>, member: impl Into<String>) -> Self {
+        self.commands.push(PipelineCommand::SAdd {
+            key: key.into(),
+            member: member.into(),
+        });
+        self
+    }
+
     /// Add a ZRANGEBYSCORE command to the pipeline.
     pub fn zrangebyscore(
         mut self,
@@ -345,9 +358,10 @@ mod tests {
             .hget("k11", "f11")
             .hincrby("k12", "f12", 5)
             .scard("k13")
-            .zrangebyscore("k14", "0", "100");
+            .sadd("k14", "m14")
+            .zrangebyscore("k15", "0", "100");
 
-        assert_eq!(pipeline.len(), 14);
+        assert_eq!(pipeline.len(), 15);
     }
 
     #[test]

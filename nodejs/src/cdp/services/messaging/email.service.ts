@@ -1,4 +1,5 @@
 import { MessageHeader, SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2'
+import { SendMailOptions } from 'nodemailer'
 
 import { CyclotronJobInvocationHogFunction, CyclotronJobInvocationResult, IntegrationType } from '~/cdp/types'
 import { createAddLogFunction, logEntry } from '~/cdp/utils'
@@ -18,6 +19,16 @@ export interface EmailServiceConfig {
     sesSecretAccessKey: string
     sesRegion: string
     sesEndpoint: string
+}
+
+export function parseAddressList(value: string | undefined): string[] | undefined {
+    if (!value || !value.trim()) {
+        return undefined
+    }
+    return value
+        .split(',')
+        .map((addr) => addr.trim())
+        .filter((addr) => addr.length > 0)
 }
 
 export class EmailService {
@@ -130,13 +141,18 @@ export class EmailService {
         params: CyclotronInvocationQueueParametersEmailType
     ): Promise<void> {
         // This can timeout but there is no native timeout so we do our own one
-        const response = await mailDevTransport!.sendMail({
+        const mailOptions: SendMailOptions = {
             from: params.from.name ? `"${params.from.name}" <${params.from.email}>` : params.from.email,
             to: params.to.name ? `"${params.to.name}" <${params.to.email}>` : params.to.email,
             subject: params.subject,
             text: params.text,
             html: addTrackingToEmail(params.html, result.invocation),
-        })
+        }
+
+        mailOptions.cc = parseAddressList(params.cc)
+        mailOptions.bcc = parseAddressList(params.bcc)
+
+        const response = await mailDevTransport!.sendMail(mailOptions)
 
         if (!response.accepted) {
             throw new Error(`Failed to send email to maildev: ${JSON.stringify(response)}`)
@@ -193,12 +209,9 @@ export class EmailService {
             })
         }
 
-        if (params.replyTo && params.replyTo.trim()) {
-            sendEmailParams.ReplyToAddresses = params.replyTo
-                .split(',')
-                .map((addr) => addr.trim())
-                .filter((addr) => addr.length > 0)
-        }
+        sendEmailParams.ReplyToAddresses = parseAddressList(params.replyTo)
+        sendEmailParams.Destination!.CcAddresses = parseAddressList(params.cc)
+        sendEmailParams.Destination!.BccAddresses = parseAddressList(params.bcc)
 
         try {
             const response = await this.sesV2Client.send(new SendEmailCommand(sendEmailParams))

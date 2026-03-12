@@ -22,6 +22,7 @@ import { fileURLToPath } from 'node:url'
 import { parse as parseYaml } from 'yaml'
 
 import { discoverDefinitions } from './lib/definitions.mjs'
+import { applyMcpExtensions } from './lib/mcp-extensions.mjs'
 import {
     type CategoryConfig,
     CategoryConfigSchema,
@@ -63,6 +64,8 @@ interface OpenApiSchema {
     enum?: string[]
     maxLength?: number
     default?: unknown
+    'x-mcp-description'?: string
+    'x-mcp-exclude'?: boolean
 }
 
 interface OpenApiOperation {
@@ -105,7 +108,9 @@ function loadOpenApi(): OpenApiSpec {
         console.error(`OpenAPI schema not found at ${OPENAPI_PATH}. Run \`hogli build:openapi-schema\` first.`)
         process.exit(1)
     }
-    return JSON.parse(fs.readFileSync(OPENAPI_PATH, 'utf-8')) as OpenApiSpec
+    const spec = JSON.parse(fs.readFileSync(OPENAPI_PATH, 'utf-8')) as OpenApiSpec
+    applyMcpExtensions(spec)
+    return spec
 }
 
 /**

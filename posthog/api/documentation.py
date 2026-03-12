@@ -5,6 +5,7 @@ from typing import Any, get_args
 from django.core.exceptions import ImproperlyConfigured
 
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
+from drf_spectacular.openapi import AutoSchema as _SpectacularAutoSchema
 from drf_spectacular.plumbing import build_mock_request
 from drf_spectacular.utils import (
     extend_schema,  # noqa: F401
@@ -17,6 +18,71 @@ from rest_framework.exceptions import PermissionDenied
 from posthog.models.entity import MathType
 from posthog.models.property import OperatorType, PropertyType
 from posthog.permissions import APIScopePermission
+
+
+class _McpFieldMixin:
+    """Mixin that makes MCP metadata survive DRF's Field.__deepcopy__.
+
+    DRF's Field.__deepcopy__ re-instantiates from the original constructor
+    args/kwargs, discarding any attributes set after construction. This
+    mixin wraps __deepcopy__ to copy MCP attributes onto the clone.
+    """
+
+    def __deepcopy__(self, memo):
+        clone = super().__deepcopy__(memo)
+        for attr in ("mcp_description", "mcp_exclude"):
+            value = getattr(self, attr, None)
+            if value is not None:
+                setattr(clone, attr, value)
+        return clone
+
+
+_mcp_cls_cache: dict[type, type] = {}
+
+
+def _make_mcp_field(field):
+    """Wrap a field instance so that MCP attributes survive deepcopy.
+
+    Returns a new instance whose class inherits from _McpFieldMixin
+    and the original field's class, preserving __deepcopy__ semantics.
+    """
+    original_cls = type(field)
+    if original_cls not in _mcp_cls_cache:
+        _mcp_cls_cache[original_cls] = type(f"Mcp{original_cls.__name__}", (_McpFieldMixin, original_cls), {})
+    field.__class__ = _mcp_cls_cache[original_cls]
+    return field
+
+
+def extend_for_mcp(field, *, description=None, exclude=False):
+    """Annotate a serializer field with MCP-specific metadata.
+
+    Emitted as OpenAPI vendor extensions (x-mcp-description, x-mcp-exclude)
+    and consumed by the MCP tool generator.
+    """
+    _make_mcp_field(field)
+    if description is not None:
+        field.mcp_description = description
+    if exclude:
+        field.mcp_exclude = True
+    return field
+
+
+def disable_for_mcp(field):
+    """Exclude a serializer field from MCP tool schemas.
+
+    Shorthand for extend_for_mcp(field, exclude=True).
+    """
+    return extend_for_mcp(field, exclude=True)
+
+
+class AutoSchema(_SpectacularAutoSchema):
+    def _map_serializer_field(self, field, direction, bypass_extensions=False):
+        schema = super()._map_serializer_field(field, direction, bypass_extensions=bypass_extensions)
+        if getattr(field, "mcp_description", None):
+            schema["x-mcp-description"] = field.mcp_description
+        if getattr(field, "mcp_exclude", False):
+            schema["x-mcp-exclude"] = True
+        return schema
 
 
 def build_openapi_mock_request(method, path, view, original_request, **kwargs):

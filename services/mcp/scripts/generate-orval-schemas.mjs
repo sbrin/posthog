@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url'
 import { filterSchemaByOperationIds } from '@posthog/openapi-codegen'
 
 import { discoverDefinitions, resolveSchemaPath } from './lib/definitions.mjs'
+import { applyMcpExtensions } from './lib/mcp-extensions.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const mcpRoot = path.resolve(__dirname, '..')
@@ -167,6 +168,7 @@ for (const def of definitions) {
 
     filtered = stripNullDefaults(filtered)
     stripUuidFormat(filtered)
+    applyMcpExtensions(filtered)
     const pathCount = Object.keys(filtered.paths).length
     const schemaCount = Object.keys(filtered.components.schemas).length
 

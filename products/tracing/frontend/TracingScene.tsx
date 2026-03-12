@@ -1,15 +1,103 @@
+import { useActions, useValues } from 'kea'
+
+import { LemonModal, LemonTable, LemonTableColumns, LemonTag } from '@posthog/lemon-ui'
+
 import { SceneExport } from 'scenes/sceneTypes'
 
 import { SceneContent } from '~/layout/scenes/components/SceneContent'
 import { SceneTitleSection } from '~/layout/scenes/components/SceneTitleSection'
 import { ProductKey } from '~/queries/schema/schema-general'
 
+import { formatDuration, TraceFlameChart } from './TraceFlameChart'
+import { tracingSceneLogic } from './tracingSceneLogic'
+import { TracingSparkline } from './TracingSparkline'
+import type { Span } from './types'
+
 export const scene: SceneExport = {
     component: TracingScene,
+    logic: tracingSceneLogic,
     productKey: ProductKey.TRACING,
 }
 
+const SPAN_KIND_LABELS: Record<number, string> = {
+    0: 'Unspecified',
+    1: 'Internal',
+    2: 'Server',
+    3: 'Client',
+    4: 'Producer',
+    5: 'Consumer',
+}
+
+const STATUS_CODE_LABELS: Record<number, { label: string; type: 'success' | 'warning' | 'danger' | 'default' }> = {
+    0: { label: 'Unset', type: 'default' },
+    1: { label: 'OK', type: 'success' },
+    2: { label: 'Error', type: 'danger' },
+}
+
+function isRootSpan(span: Span): boolean {
+    return !span.parent_span_id
+}
+
+const columns: LemonTableColumns<Span> = [
+    {
+        title: 'Timestamp',
+        dataIndex: 'timestamp',
+        render: (_, span) => new Date(span.timestamp).toLocaleString(),
+    },
+    {
+        title: 'Name',
+        dataIndex: 'name',
+        render: (_, span) => (
+            <span className="flex items-center gap-2">
+                {span.name}
+                {isRootSpan(span) && (
+                    <LemonTag type="highlight" size="small">
+                        trace
+                    </LemonTag>
+                )}
+            </span>
+        ),
+    },
+    {
+        title: 'Service',
+        dataIndex: 'service_name',
+        render: (_, span) => <LemonTag>{span.service_name}</LemonTag>,
+    },
+    {
+        title: 'Kind',
+        dataIndex: 'kind',
+        render: (_, span) => SPAN_KIND_LABELS[span.kind] ?? span.kind,
+    },
+    {
+        title: 'Duration',
+        dataIndex: 'duration_nano',
+        render: (_, span) => formatDuration(span.duration_nano),
+    },
+    {
+        title: 'Status',
+        dataIndex: 'status_code',
+        render: (_, span) => {
+            const status = STATUS_CODE_LABELS[span.status_code] ?? {
+                label: String(span.status_code),
+                type: 'default' as const,
+            }
+            return <LemonTag type={status.type}>{status.label}</LemonTag>
+        },
+    },
+    {
+        title: 'Trace ID',
+        dataIndex: 'trace_id',
+        render: (_, span) => <span className="font-mono text-xs">{span.trace_id.substring(0, 16)}...</span>,
+    },
+]
+
 export default function TracingScene(): JSX.Element {
+    const { spans, spansLoading, isTraceModalOpen, traceSpans, selectedTraceId, sparklineData, sparklineRowsLoading } =
+        useValues(tracingSceneLogic)
+    const { openTraceModal, closeTraceModal } = useActions(tracingSceneLogic)
+
+    const rootSpan = traceSpans.find((s) => !s.parent_span_id)
+
     return (
         <SceneContent>
             <SceneTitleSection
@@ -19,6 +107,34 @@ export default function TracingScene(): JSX.Element {
                     type: 'tracing',
                 }}
             />
+            <TracingSparkline
+                sparklineData={sparklineData}
+                sparklineLoading={sparklineRowsLoading}
+                displayTimezone="UTC"
+            />
+            <LemonTable
+                columns={columns}
+                dataSource={spans}
+                loading={spansLoading}
+                rowKey="uuid"
+                emptyState="No spans found"
+                onRow={(span) => ({
+                    onClick: () => openTraceModal(span.trace_id),
+                    className: 'cursor-pointer',
+                })}
+            />
+            <LemonModal
+                title={
+                    rootSpan
+                        ? `${rootSpan.name} — ${formatDuration(rootSpan.duration_nano)}`
+                        : `Trace ${selectedTraceId?.substring(0, 16)}...`
+                }
+                isOpen={isTraceModalOpen}
+                onClose={closeTraceModal}
+                width="90vw"
+            >
+                <TraceFlameChart spans={traceSpans} />
+            </LemonModal>
         </SceneContent>
     )
 }

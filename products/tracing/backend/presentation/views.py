@@ -10,5 +10,25 @@ Responsibilities:
 No business logic here - that belongs in logic.py via the facade.
 """
 
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.request import Request
+from rest_framework.response import Response
 
+from posthog.api.routing import TeamAndOrgViewSetMixin
+
+# TODO: Once real data replaces fixtures, call facade methods instead:
 # from ..facade import api
+from ..logic import generate_fixture_spans, generate_fixture_sparkline
+
+
+class SpansViewSet(TeamAndOrgViewSetMixin, viewsets.ViewSet):
+    scope_object = "INTERNAL"
+
+    def list(self, request: Request, *args, **kwargs) -> Response:
+        return Response({"results": generate_fixture_spans()[:100]}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"])
+    def sparkline(self, request: Request, *args, **kwargs) -> Response:
+        spans = generate_fixture_spans()
+        return Response({"results": generate_fixture_sparkline(spans)}, status=status.HTTP_200_OK)
